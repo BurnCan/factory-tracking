@@ -64,3 +64,34 @@ class ContainerDetailResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AuditScanRequest(BaseModel):
+    slot_number: int
+    part_number: Optional[str] = None
+    changed_by: str = "operator"
+
+
+class AuditScanResponse(BaseModel):
+    truck_code: str
+    slot_number: int
+    action: str
+    old_part_number: Optional[str] = None
+    new_part_number: Optional[str] = None
+    moved_from_truck: Optional[str] = None
+    moved_from_slot: Optional[int] = None
+    deviation_code: Optional[str] = None
+
+
+class DeviationResponse(BaseModel):
+    id: int
+    code: str
+    truck_code: str
+    slot_number: Optional[int]
+    part_number: Optional[str]
+    details: Optional[str]
+    created_by: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

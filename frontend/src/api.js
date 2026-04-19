@@ -13,6 +13,16 @@ export async function fetchDashboard() {
   return handleResponse(res)
 }
 
+export async function fetchDeviations() {
+  const res = await fetch(`${API_BASE}/dashboard/deviations`)
+  return handleResponse(res)
+}
+
+export async function fetchRecentHistory() {
+  const res = await fetch(`${API_BASE}/dashboard/recent-history`)
+  return handleResponse(res)
+}
+
 export async function fetchContainers() {
   const res = await fetch(`${API_BASE}/containers`)
   return handleResponse(res)
@@ -51,5 +61,14 @@ export async function clearSlot(code, slotNumber, changedBy = 'operator') {
     `${API_BASE}/containers/${code}/slots/${slotNumber}?changed_by=${encodeURIComponent(changedBy)}`,
     { method: 'DELETE' }
   )
+  return handleResponse(res)
+}
+
+export async function auditScan(code, slotNumber, partNumber, changedBy = 'operator') {
+  const res = await fetch(`${API_BASE}/containers/${code}/audit-scan`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ slot_number: slotNumber, part_number: partNumber || null, changed_by: changedBy })
+  })
   return handleResponse(res)
 }
