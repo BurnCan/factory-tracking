@@ -61,3 +61,14 @@ def get_history(code: str, db: Session = Depends(get_db)):
         .limit(100)
         .all()
     )
+
+
+@router.post("/{code}/audit-scan", response_model=schemas.AuditScanResponse)
+def audit_scan(code: str, payload: schemas.AuditScanRequest, db: Session = Depends(get_db)):
+    container = crud.get_container_by_code(db, code)
+    if not container:
+        raise HTTPException(status_code=404, detail="Container not found")
+    try:
+        return crud.audit_slot(db, container, payload.slot_number, payload.part_number, payload.changed_by)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))

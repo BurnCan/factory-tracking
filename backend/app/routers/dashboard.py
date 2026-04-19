@@ -20,3 +20,37 @@ def get_summary(db: Session = Depends(get_db)):
         "occupied_slots": occupied_slots,
         "empty_slots": empty_slots,
     }
+
+
+@router.get("/deviations")
+def get_deviations(db: Session = Depends(get_db)):
+    deviations = (
+        db.query(models.Deviation)
+        .order_by(models.Deviation.created_at.desc())
+        .limit(200)
+        .all()
+    )
+    return deviations
+
+
+@router.get("/recent-history")
+def get_recent_history(db: Session = Depends(get_db)):
+    history = (
+        db.query(models.SlotHistory, models.Container.container_code)
+        .join(models.Container, models.Container.id == models.SlotHistory.container_id)
+        .order_by(models.SlotHistory.changed_at.desc())
+        .limit(200)
+        .all()
+    )
+    return [
+        {
+            "truck_code": truck_code,
+            "slot_number": item.slot_number,
+            "old_part_number": item.old_part_number,
+            "new_part_number": item.new_part_number,
+            "changed_by": item.changed_by,
+            "action": item.action,
+            "changed_at": item.changed_at,
+        }
+        for item, truck_code in history
+    ]

@@ -45,3 +45,16 @@ class SlotHistory(Base):
     changed_at = Column(DateTime, default=datetime.utcnow)
 
     container = relationship("Container", back_populates="history")
+
+
+class Deviation(Base):
+    __tablename__ = "deviations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, nullable=False)  # M=missing, F=found
+    truck_code = Column(String, nullable=False, index=True)
+    slot_number = Column(Integer, nullable=True)
+    part_number = Column(String, nullable=True)
+    details = Column(String, nullable=True)
+    created_by = Column(String, nullable=False, default="system")
+    created_at = Column(DateTime, default=datetime.utcnow)
