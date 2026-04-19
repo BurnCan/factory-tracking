@@ -72,3 +72,13 @@ export async function auditScan(code, slotNumber, partNumber, changedBy = 'opera
   })
   return handleResponse(res)
 }
+
+
+export async function closeWorkSession(code, payload) {
+  const res = await fetch(`${API_BASE}/containers/${code}/close-work`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  return handleResponse(res)
+}

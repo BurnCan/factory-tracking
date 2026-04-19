@@ -72,3 +72,28 @@ def audit_scan(code: str, payload: schemas.AuditScanRequest, db: Session = Depen
         return crud.audit_slot(db, container, payload.slot_number, payload.part_number, payload.changed_by)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+
+@router.post("/{code}/close-work", response_model=schemas.WorkSessionCloseResponse)
+def close_work(code: str, payload: schemas.WorkSessionCloseRequest, db: Session = Depends(get_db)):
+    container = crud.get_container_by_code(db, code)
+    if not container:
+        raise HTTPException(status_code=404, detail="Container not found")
+
+    event = crud.close_work_session(
+        db,
+        container,
+        payload.work_center,
+        payload.product_count,
+        payload.elapsed_seconds,
+        payload.completed_by,
+    )
+    return {
+        "truck_code": container.container_code,
+        "work_center": event.work_center,
+        "product_count": event.product_count,
+        "elapsed_seconds": event.elapsed_seconds,
+        "completed_by": event.completed_by,
+        "action": event.action,
+        "completed_at": event.completed_at,
+    }

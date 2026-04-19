@@ -35,15 +35,26 @@ def get_deviations(db: Session = Depends(get_db)):
 
 @router.get("/recent-history")
 def get_recent_history(db: Session = Depends(get_db)):
-    history = (
+    slot_history = (
         db.query(models.SlotHistory, models.Container.container_code)
         .join(models.Container, models.Container.id == models.SlotHistory.container_id)
         .order_by(models.SlotHistory.changed_at.desc())
         .limit(200)
         .all()
     )
-    return [
+
+    work_events = (
+        db.query(models.WorkSessionEvent, models.Container.container_code)
+        .join(models.Container, models.Container.id == models.WorkSessionEvent.container_id)
+        .order_by(models.WorkSessionEvent.completed_at.desc())
+        .limit(200)
+        .all()
+    )
+
+    combined = [
         {
+            "type": "slot_history",
+            "timestamp": item.changed_at,
             "truck_code": truck_code,
             "slot_number": item.slot_number,
             "old_part_number": item.old_part_number,
@@ -52,5 +63,21 @@ def get_recent_history(db: Session = Depends(get_db)):
             "action": item.action,
             "changed_at": item.changed_at,
         }
-        for item, truck_code in history
+        for item, truck_code in slot_history
+    ] + [
+        {
+            "type": "work_completed",
+            "timestamp": item.completed_at,
+            "truck_code": truck_code,
+            "work_center": item.work_center,
+            "product_count": item.product_count,
+            "elapsed_seconds": item.elapsed_seconds,
+            "completed_by": item.completed_by,
+            "action": item.action,
+            "completed_at": item.completed_at,
+        }
+        for item, truck_code in work_events
     ]
+
+    combined.sort(key=lambda entry: entry["timestamp"], reverse=True)
+    return combined[:200]
