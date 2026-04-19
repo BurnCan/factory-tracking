@@ -1,4 +1,8 @@
-export default function SlotGrid({ slots, onSelectSlot }) {
+function getSlotLabel(containerCode, slotNumber) {
+  return `${containerCode}-${slotNumber}`
+}
+
+export default function SlotGrid({ containerCode, slots, onSelectSlot }) {
   return (
     <div
       style={{
@@ -9,10 +13,11 @@ export default function SlotGrid({ slots, onSelectSlot }) {
     >
       {slots.map((slot) => {
         const occupied = Boolean(slot.part_number)
+        const slotLabel = getSlotLabel(containerCode, slot.slot_number)
 
         return (
           <button
-            key={slot.slot_number}
+            key={slotLabel}
             onClick={() => onSelectSlot(slot)}
             style={{
               border: occupied ? '1px solid #86efac' : '1px solid #d1d5db',
@@ -25,7 +30,7 @@ export default function SlotGrid({ slots, onSelectSlot }) {
               boxShadow: '0 1px 6px rgba(0,0,0,0.05)'
             }}
           >
-            <div style={{ fontWeight: 700, marginBottom: '8px' }}>Slot {slot.slot_number}</div>
+            <div style={{ fontWeight: 700, marginBottom: '8px' }}>{slotLabel}</div>
             <div style={{ color: occupied ? '#166534' : '#6b7280', wordBreak: 'break-word' }}>
               {slot.part_number || 'Empty'}
             </div>

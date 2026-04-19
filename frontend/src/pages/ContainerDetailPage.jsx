@@ -3,6 +3,10 @@ import { Link, useParams } from 'react-router-dom'
 import { clearSlot, fetchContainer, fetchHistory, updateSlot } from '../api'
 import SlotGrid from '../components/SlotGrid'
 
+function getSlotLabel(containerCode, slotNumber) {
+  return `${containerCode}-${slotNumber}`
+}
+
 export default function ContainerDetailPage() {
   const { code } = useParams()
   const [container, setContainer] = useState(null)
@@ -30,8 +34,9 @@ export default function ContainerDetailPage() {
 
   async function handleSelectSlot(slot) {
     const currentValue = slot.part_number || ''
+    const slotLabel = getSlotLabel(code, slot.slot_number)
     const nextValue = window.prompt(
-      `Enter part number for slot ${slot.slot_number}. Leave blank to clear it.`,
+      `Enter part number for slot ${slotLabel}. Leave blank to clear it.`,
       currentValue
     )
 
@@ -88,7 +93,7 @@ export default function ContainerDetailPage() {
 
       <section style={{ marginTop: '20px' }}>
         <h2>Slots</h2>
-        <SlotGrid slots={container.slots} onSelectSlot={handleSelectSlot} />
+        <SlotGrid containerCode={container.container_code} slots={container.slots} onSelectSlot={handleSelectSlot} />
       </section>
 
       <section
@@ -115,7 +120,7 @@ export default function ContainerDetailPage() {
                 }}
               >
                 <div style={{ fontWeight: 600 }}>
-                  Slot {item.slot_number} — {item.action}
+                  {getSlotLabel(container.container_code, item.slot_number)} — {item.action}
                 </div>
                 <div style={{ color: '#4b5563', marginTop: '4px' }}>
                   {item.old_part_number || 'Empty'} → {item.new_part_number || 'Empty'}
