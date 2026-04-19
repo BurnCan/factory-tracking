@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createContainer, fetchContainers } from '../api'
+import { createContainer, fetchContainers, fetchDashboard } from '../api'
+import StatCard from '../components/StatCard'
 
 function normalizeCode(value) {
   return value.trim().toUpperCase()
@@ -8,6 +9,7 @@ function normalizeCode(value) {
 
 export default function ContainersPage() {
   const [containers, setContainers] = useState([])
+  const [dashboardData, setDashboardData] = useState(null)
   const [filter, setFilter] = useState('all')
   const [newCode, setNewCode] = useState('')
   const [error, setError] = useState('')
@@ -26,8 +28,18 @@ export default function ContainersPage() {
     }
   }
 
+  async function loadDashboardSummary() {
+    try {
+      const data = await fetchDashboard()
+      setDashboardData(data)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
   useEffect(() => {
     loadContainers()
+    loadDashboardSummary()
   }, [])
 
   const filteredContainers = useMemo(() => {
@@ -41,7 +53,7 @@ export default function ContainersPage() {
     try {
       await createContainer(normalizeCode(newCode))
       setNewCode('')
-      await loadContainers()
+      await Promise.all([loadContainers(), loadDashboardSummary()])
     } catch (err) {
       setError(err.message)
     }
@@ -49,9 +61,25 @@ export default function ContainersPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-        <h1 style={{ margin: 0 }}>Containers</h1>
+      <h1 style={{ marginTop: 0, marginBottom: '16px' }}>Containers</h1>
 
+      {dashboardData && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '16px',
+            marginBottom: '20px'
+          }}
+        >
+          <StatCard label="Neck Trucks" value={dashboardData.total_neck_trucks} />
+          <StatCard label="Body Trucks" value={dashboardData.total_body_trucks} />
+          <StatCard label="Occupied Slots" value={dashboardData.occupied_slots} />
+          <StatCard label="Empty Slots" value={dashboardData.empty_slots} />
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
         <form onSubmit={handleCreate} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <input
             value={newCode}
