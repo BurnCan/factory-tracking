@@ -95,3 +95,20 @@ class DeviationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class WorkSessionCloseRequest(BaseModel):
+    work_center: str
+    product_count: int
+    elapsed_seconds: int
+    completed_by: str = "operator"
+
+
+class WorkSessionCloseResponse(BaseModel):
+    truck_code: str
+    work_center: str
+    product_count: int
+    elapsed_seconds: int
+    completed_by: str
+    action: str
+    completed_at: datetime

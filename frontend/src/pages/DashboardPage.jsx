@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { auditScan, fetchContainer, fetchDeviations, fetchRecentHistory } from '../api'
+import { auditScan, closeWorkSession, fetchContainer, fetchDeviations, fetchRecentHistory } from '../api'
 
 function secondsToClock(totalSeconds) {
   const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0')
@@ -66,7 +66,23 @@ export default function DashboardPage() {
     setStep(6)
   }
 
-  function closeTruck() {
+  async function closeTruck() {
+    if (!container) return
+
+    setError('')
+    try {
+      await closeWorkSession(container.container_code, {
+        work_center: workCenter,
+        product_count: occupiedCount,
+        elapsed_seconds: elapsedSeconds,
+        completed_by: employeeId || 'operator',
+      })
+      await refreshOpsData()
+    } catch (err) {
+      setError(err.message)
+      return
+    }
+
     setTimerStart(null)
     setElapsedSeconds(0)
     setTruckCode('')
@@ -148,7 +164,6 @@ export default function DashboardPage() {
       {step === 4 && container && (
         <form onSubmit={evaluateCount}>
           <h2>Step 4: Enter Number of Products On Truck</h2>
-          <div style={{ color: '#4b5563' }}>Truck {container.container_code} currently has {occupiedCount} assigned slots.</div>
           <input value={countInput} onChange={(e) => setCountInput(e.target.value)} placeholder="Count" />
           <button type="submit" style={{ marginLeft: 10 }}>Validate Count</button>
         </form>
@@ -219,8 +234,19 @@ export default function DashboardPage() {
         ) : (
           <div style={{ display: 'grid', gap: 8 }}>
             {recentHistory.slice(0, 20).map((entry, index) => (
-              <div key={`${entry.changed_at}-${index}`} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8 }}>
-                <strong>{entry.truck_code}-{entry.slot_number}</strong> {entry.action}: {entry.old_part_number || 'Empty'} → {entry.new_part_number || 'Empty'}
+              <div key={`${entry.action}-${entry.truck_code}-${index}`} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8 }}>
+                {entry.type === 'work_completed' ? (
+                  <>
+                    <strong>{entry.truck_code}</strong> work completed at <strong>{entry.work_center}</strong>
+                    <div style={{ color: '#4b5563' }}>
+                      Products: {entry.product_count} • Elapsed: {secondsToClock(entry.elapsed_seconds)}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <strong>{entry.truck_code}-{entry.slot_number}</strong> {entry.action}: {entry.old_part_number || 'Empty'} → {entry.new_part_number || 'Empty'}
+                  </>
+                )}
               </div>
             ))}
           </div>

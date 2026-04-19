@@ -58,3 +58,18 @@ class Deviation(Base):
     details = Column(String, nullable=True)
     created_by = Column(String, nullable=False, default="system")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class WorkSessionEvent(Base):
+    __tablename__ = "work_session_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    container_id = Column(Integer, ForeignKey("containers.id"), nullable=False)
+    work_center = Column(String, nullable=False)
+    product_count = Column(Integer, nullable=False)
+    elapsed_seconds = Column(Integer, nullable=False)
+    completed_by = Column(String, nullable=False, default="operator")
+    action = Column(String, nullable=False, default="work_completed")
+    completed_at = Column(DateTime, default=datetime.utcnow)
+
+    container = relationship("Container")

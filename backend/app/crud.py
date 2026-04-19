@@ -248,3 +248,25 @@ def audit_slot(db: Session, container: models.Container, slot_number: int, part_
         "new_part_number": scanned_part,
         "deviation_code": deviation_code,
     }
+
+
+def close_work_session(
+    db: Session,
+    container: models.Container,
+    work_center: str,
+    product_count: int,
+    elapsed_seconds: int,
+    completed_by: str,
+):
+    event = models.WorkSessionEvent(
+        container_id=container.id,
+        work_center=work_center.strip(),
+        product_count=product_count,
+        elapsed_seconds=elapsed_seconds,
+        completed_by=completed_by,
+    )
+    container.status = "closed"
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+    return event
