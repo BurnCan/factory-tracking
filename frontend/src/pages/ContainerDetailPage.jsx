@@ -7,6 +7,20 @@ function getSlotLabel(containerCode, slotNumber) {
   return `${containerCode}-${slotNumber}`
 }
 
+function formatTimestampInEST(timestamp) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZoneName: 'short'
+  }).format(new Date(timestamp))
+}
+
 export default function ContainerDetailPage() {
   const { code } = useParams()
   const [container, setContainer] = useState(null)
@@ -126,7 +140,7 @@ export default function ContainerDetailPage() {
                   {item.old_part_number || 'Empty'} → {item.new_part_number || 'Empty'}
                 </div>
                 <div style={{ color: '#6b7280', marginTop: '4px', fontSize: '14px' }}>
-                  Changed by {item.changed_by} at {new Date(item.changed_at).toLocaleString()}
+                  Changed by {item.changed_by} at {formatTimestampInEST(item.changed_at)}
                 </div>
               </div>
             ))}
